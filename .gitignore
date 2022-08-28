@@ -1,4 +1,1 @@
-*.ncb
-*.suo
-*.user
-Debug/
+build/
