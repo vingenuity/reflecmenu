@@ -29,6 +29,10 @@ if [%2]==[] (
 :: --------------------------------------------------------------
 :: MAIN EXECUTION
 :: --------------------------------------------------------------
+:check_cmake
+where.exe /q %CMAKE_PATH%
+if ERRORLEVEL 1 goto :error__cmake
+
 :select_vs
 if "%VS_YEAR%"=="2019" (
     set CMAKE_GENERATOR=Visual Studio 16 2019
@@ -80,6 +84,10 @@ echo Building reflecmenu in '%BUILD_CONFIG%' configuration...
 if ERRORLEVEL 1 goto :error__build
 goto :finish
 
+
+:error__cmake
+echo ERROR: Unable to find executable for CMake!
+goto :finish
 
 :error__vs_year
 echo ERROR: Invalid Visual Studio year '%VS_YEAR%' was specified!
