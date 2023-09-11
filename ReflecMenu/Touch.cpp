@@ -33,7 +33,7 @@ void Touch::Tick()
 		// See if the packet is good
 		if (ValidatePacket()) {
 			bool vertical[VERTICAL_RESOLUTION] = { false };
-			bool horizontal[HORIZONTAL_RESOLUTION] = { false };
+			bool horizontal[HORIZONTAL_RESOLUTION_TRUE] = { false };
 
 			// Get the touched axis
 			SeparateAxis(horizontal, vertical);
@@ -132,7 +132,7 @@ void Touch::SeparateAxis(bool *horizontal, bool *vertical)
 	for (unsigned int y = 0; y < VERTICAL_RESOLUTION; y++) {
 		vertical[VERTICAL_RESOLUTION - 1 - y] = ((packet[3 + (y / 8)] >> (y % 8)) & 0x1) != 0;
 	}
-	for (unsigned int x = 0; x < HORIZONTAL_RESOLUTION; x++) {
+	for (unsigned int x = 0; x < HORIZONTAL_RESOLUTION_TRUE; x++) {
 		horizontal[x] = ((packet[14 + (x / 8)] >> (x % 8)) & 0x1) != 0;
 	}
 }
@@ -145,7 +145,7 @@ void Touch::GetLikelyClickPosition(bool *horizontal, bool *vertical, double *x, 
 	int maxY = -1;
 
 	for (unsigned int yp = 0; yp < VERTICAL_RESOLUTION; yp++) {
-		for (unsigned int xp = 0; xp < HORIZONTAL_RESOLUTION; xp++) {
+		for (unsigned int xp = 0; xp < HORIZONTAL_RESOLUTION_TRUE; xp++) {
 			if (horizontal[xp] && vertical[yp]) {
 				maxX = xp;
 				maxY = yp;
@@ -177,6 +177,9 @@ void Touch::GetLikelyClickPosition(bool *horizontal, bool *vertical, double *x, 
 		*click = true;
 	}
 
-	*x = (((double)maxX + (double)minX) / 2.0) / (double)HORIZONTAL_RESOLUTION;
-	*y = (((double)maxY + (double)minY) / 2.0) / (double)VERTICAL_RESOLUTION;
+	// Convert from the "true" resolution of the IR grid to the "effective" grid that is over the screen itelf
+	const double touchMidpointHorizontalTrue = ((double)(maxX + 1 + minX) * 0.5);
+	const double touchMidpointHorizontalEffective = (touchMidpointHorizontalTrue - (double)GRID_HALF_HORIZONTAL_OVERSCAN);
+	*x = touchMidpointHorizontalEffective / (double)HORIZONTAL_RESOLUTION_EFFECTIVE;
+	*y = ((double)(maxY + 1 + minY) * 0.5) / (double)VERTICAL_RESOLUTION;
 }
